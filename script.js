@@ -288,15 +288,14 @@ function runPacking() {
     let packedItems = [];
     let currentWeight = 0;
     
-    // Contadores de falha
-    let failedWeightCount = 0;
-    let failedSpaceCount = 0;
+    // Lista de itens que falharam no empacotamento
+    let failedItems = [];
 
     // Empacotamento
     for(const item of itemsToPack) {
         if(currentWeight + item.weight > maxWeight) {
             // Peso excedido, pula o item
-            failedWeightCount++;
+            failedItems.push({ name: item.name, reason: 'weight' });
             continue; 
         }
 
@@ -364,7 +363,7 @@ function runPacking() {
             
             // Opcional: Consolidação de espaços vazios seria ideal, mas pra MVP tá ok.
         } else {
-            failedSpaceCount++;
+            failedItems.push({ name: item.name, reason: 'space' });
         }
     }
 
@@ -375,20 +374,25 @@ function runPacking() {
     const warningBox = document.getElementById('capacity-warning');
     const warningMsg = document.getElementById('warning-text');
     
-    if (failedWeightCount > 0 || failedSpaceCount > 0) {
+    if (failedItems.length > 0) {
         warningBox.style.display = 'flex';
-        const failCount = failedWeightCount + failedSpaceCount;
         
-        let reason = "";
-        if(failedWeightCount > 0 && failedSpaceCount > 0) {
-            reason = "por limite de peso excedido e por falta de espaço físico no veículo";
-        } else if (failedWeightCount > 0) {
-            reason = "por limite de peso excedido";
-        } else {
-            reason = "por falta de espaço físico no veículo";
+        // Agrupar falhas por nome do item e motivo
+        const summaryMap = {};
+        for (const f of failedItems) {
+            const key = `${f.name}|${f.reason}`;
+            if (!summaryMap[key]) {
+                summaryMap[key] = { name: f.name, reason: f.reason, count: 0 };
+            }
+            summaryMap[key].count++;
         }
         
-        warningMsg.textContent = `Atenção: ${failCount} item(s) não couberam ${reason}. Tente um veículo maior ou ajuste as cargas.`;
+        const reasonsList = Object.values(summaryMap).map(f => {
+            const reasonStr = f.reason === 'weight' ? 'excesso de peso' : 'falta de espaço';
+            return `${f.count}x "${f.name}" (${reasonStr})`;
+        });
+        
+        warningMsg.textContent = `Atenção: Não coube(ram): ${reasonsList.join(', ')}. Tente um veículo maior ou ajuste as cargas.`;
     } else {
         warningBox.style.display = 'none';
     }
