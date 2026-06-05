@@ -295,26 +295,30 @@ addCargoBtn.addEventListener('click', () => {
     liveUpdate();
 });
 
-// Inicializar com exemplo pré-preenchido de otimização de estufagem
-function initializeExample() {
-    // 1. Selecionar veículo VUC
-    truckSelect.value = 'vuc';
+// Inicializar a aplicação limpa e pronta para uso
+function initializeCleanState() {
+    // 1. Selecionar veículo personalizado (limpo para digitação manual)
+    truckSelect.value = 'custom';
     truckSelect.dispatchEvent(new Event('change'));
     
-    // 2. Limpar qualquer carga inicial
+    // 2. Limpar a lista de cargas
     cargoList.innerHTML = '';
     
-    // 3. Adicionar cargas do exemplo que demonstram a otimização
-    addCargoItem('Palete Grande', 120, 100, 150, 4, 200, true, true, '#E69F00');
-    addCargoItem('Caixa Média', 80, 60, 50, 12, 45, true, true, '#56B4E9');
-    addCargoItem('Caixa Pequena', 40, 40, 40, 20, 15, true, true, '#009E73');
+    // 3. Adicionar um único item de carga em branco pronto para o usuário preencher
+    addCargoItem('', '', '', '', '', '', true, true, '#E69F00');
     
-    // 4. Rodar o cálculo após o layout inicial do navegador
-    liveUpdate();
+    // 4. Limpar o visualizador e estatísticas
+    const emptyState = document.getElementById('empty-state');
+    if (emptyState) emptyState.style.display = 'block';
+    
+    // Garantir que as estatísticas reflitam valores vazios
+    document.getElementById('stat-count').textContent = '0 / 0';
+    document.getElementById('stat-vol').textContent = '0.00%';
+    document.getElementById('stat-weight').textContent = '0 kg / 0 kg (0.00%)';
 }
 
-// Iniciar a aplicação com o exemplo preenchido
-initializeExample();
+// Iniciar a aplicação limpa
+initializeCleanState();
 
 // ----------------------------------------------------
 // LÓGICA DE BIN PACKING E THREE.JS
