@@ -656,7 +656,7 @@ canvas {
 /* ====================================================
    OTIMIZAÇÃO PARA MOBILE & RESPONSIVIDADE
    ==================================================== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .app-wrapper {
         flex-direction: column;
         height: 100vh;
