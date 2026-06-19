@@ -421,7 +421,7 @@ class Space {
     }
 }
 
-function singlePacking(items, cW, cH, cD, maxWeight, sortFunc, splitAxis = 0) {
+function singlePacking(items, cW, cH, cD, maxWeight, sortFunc, splitAxis = 0, rotationHeuristic = 'default') {
     // Fazer cópia profunda para não contaminar outras execuções
     let localItems = items.map(x => ({ ...x }));
     
@@ -442,6 +442,7 @@ function singlePacking(items, cW, cH, cD, maxWeight, sortFunc, splitAxis = 0) {
         // Tentar encontrar um espaço
         let bestSpaceIndex = -1;
         let finalW, finalH, finalD;
+        let bestScore = Infinity;
         
         // Rotações permitidas (apenas no plano Y - comprimento x largura)
         let rotations = [ [item.w, item.h, item.d] ];
@@ -449,20 +450,46 @@ function singlePacking(items, cW, cH, cD, maxWeight, sortFunc, splitAxis = 0) {
             rotations.push([item.d, item.h, item.w]);
         }
 
+        let activeRotations = (rotationHeuristic === 'reverse') ? [...rotations].reverse() : rotations;
+
         for(let i = 0; i < freeSpaces.length; i++) {
             let space = freeSpaces[i];
             
-            for(let rot of rotations) {
+            for(let rot of activeRotations) {
                 let [rw, rh, rd] = rot;
                 if(rw <= space.w && rh <= space.h && rd <= space.d) {
+                    let score = 0;
+                    if (rotationHeuristic === 'bssf') {
+                        score = Math.min(space.w - rw, space.d - rd);
+                    } else if (rotationHeuristic === 'blsf') {
+                        score = Math.max(space.w - rw, space.d - rd);
+                    }
+
                     if(bestSpaceIndex === -1) {
                         bestSpaceIndex = i;
                         finalW = rw; finalH = rh; finalD = rd;
+                        bestScore = score;
                     } else {
                         let bestSpace = freeSpaces[bestSpaceIndex];
-                        if(space.y < bestSpace.y || (space.y === bestSpace.y && space.z < bestSpace.z)) {
+                        let isBetter = false;
+                        if(space.y < bestSpace.y) {
+                            isBetter = true;
+                        } else if(space.y === bestSpace.y) {
+                            if(space.z < bestSpace.z) {
+                                isBetter = true;
+                            } else if(space.z === bestSpace.z) {
+                                if (rotationHeuristic === 'bssf' || rotationHeuristic === 'blsf') {
+                                    if (score < bestScore) {
+                                        isBetter = true;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (isBetter) {
                             bestSpaceIndex = i;
                             finalW = rw; finalH = rh; finalD = rd;
+                            bestScore = score;
                         }
                     }
                 }
@@ -583,23 +610,25 @@ function runPacking(showAlerts = false) {
     let bestResult = null;
     let bestStrategyName = '';
 
-    // Testar as 8 estratégias com os 2 métodos de divisão de espaço (total de 16 combinações!)
+    // Testar as 8 estratégias com os 2 métodos de divisão de espaço e 4 heurísticas de rotação (total de 64 combinações!)
     for (const strategy of sortingStrategies) {
         for (let splitAxis of [0, 1]) {
-            const result = singlePacking(itemsToPack, cW, cH, cD, maxWeight, strategy.sort, splitAxis);
-            if (!bestResult) {
-                bestResult = result;
-                bestStrategyName = `${strategy.name} (Split ${splitAxis})`;
-            } else {
-                // Escolhe a estratégia que ocupar MAIOR volume (melhor aproveitamento de espaço do veículo)
-                if (result.packedVolume > bestResult.packedVolume) {
+            for (let rotationHeuristic of ['default', 'reverse', 'bssf', 'blsf']) {
+                const result = singlePacking(itemsToPack, cW, cH, cD, maxWeight, strategy.sort, splitAxis, rotationHeuristic);
+                if (!bestResult) {
                     bestResult = result;
-                    bestStrategyName = `${strategy.name} (Split ${splitAxis})`;
-                }
-                // Em caso de empate no volume ocupado, escolhe a que colocar MAIS caixas (maior quantidade de itens)
-                else if (result.packedVolume === bestResult.packedVolume && result.packedCount > bestResult.packedCount) {
-                    bestResult = result;
-                    bestStrategyName = `${strategy.name} (Split ${splitAxis})`;
+                    bestStrategyName = `${strategy.name} (Split ${splitAxis}, ${rotationHeuristic})`;
+                } else {
+                    // Escolhe a estratégia que ocupar MAIOR volume (melhor aproveitamento de espaço do veículo)
+                    if (result.packedVolume > bestResult.packedVolume) {
+                        bestResult = result;
+                        bestStrategyName = `${strategy.name} (Split ${splitAxis}, ${rotationHeuristic})`;
+                    }
+                    // Em caso de empate no volume ocupado, escolhe a que colocar MAIS caixas (maior quantidade de itens)
+                    else if (result.packedVolume === bestResult.packedVolume && result.packedCount > bestResult.packedCount) {
+                        bestResult = result;
+                        bestStrategyName = `${strategy.name} (Split ${splitAxis}, ${rotationHeuristic})`;
+                    }
                 }
             }
         }
