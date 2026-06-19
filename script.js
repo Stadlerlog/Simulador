@@ -106,6 +106,13 @@ vehicleOptions.forEach(opt => {
     });
 });
 
+function setVehicleDimsReadOnly(isReadOnly) {
+    contL.readOnly = isReadOnly;
+    contW.readOnly = isReadOnly;
+    contH.readOnly = isReadOnly;
+    contMaxW.readOnly = isReadOnly;
+}
+
 // Seleção de Preset de Container
 containerSelect.addEventListener('change', (e) => {
     const val = e.target.value;
@@ -114,6 +121,7 @@ containerSelect.addEventListener('change', (e) => {
         contW.value = '';
         contH.value = '';
         contMaxW.value = '';
+        setVehicleDimsReadOnly(false);
     } else {
         const preset = containerPresets[val];
         if(preset) {
@@ -122,6 +130,7 @@ containerSelect.addEventListener('change', (e) => {
             contW.value = Math.round(preset.w * multiplier);
             contH.value = Math.round(preset.h * multiplier);
             contMaxW.value = preset.weight;
+            setVehicleDimsReadOnly(true);
         }
     }
     liveUpdate();
@@ -135,6 +144,7 @@ truckSelect.addEventListener('change', (e) => {
         contW.value = '';
         contH.value = '';
         contMaxW.value = '';
+        setVehicleDimsReadOnly(false);
     } else {
         const preset = truckPresets[val];
         if (preset) {
@@ -143,6 +153,7 @@ truckSelect.addEventListener('change', (e) => {
             contW.value = Math.round(preset.w * multiplier);
             contH.value = Math.round(preset.h * multiplier);
             contMaxW.value = preset.weight;
+            setVehicleDimsReadOnly(true);
         }
     }
     liveUpdate();
