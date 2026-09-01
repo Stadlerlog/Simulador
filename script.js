@@ -36,9 +36,9 @@ const containerPresets = {
 const truckPresets = {
     'fiorino': { l: 170, w: 105, h: 130, weight: 500 },
     'van': { l: 340, w: 180, h: 175, weight: 1500 },
-    'vuc': { l: 420, w: 207, h: 228, weight: 1800 },
+    'vuc': { l: 420, w: 207, h: 228, weight: 2000 },
     '3_4_bau': { l: 610, w: 220, h: 224, weight: 3500 },
-    'toco_stadler': { l: 600, w: 212, h: 224, weight: 6000 },
+    'toco_stadler': { l: 600, w: 212, h: 224, weight: 3500 },
     'toco_sider': { l: 650, w: 250, h: 290, weight: 6500 },
     'toco_bau': { l: 810, w: 250, h: 260, weight: 6500 },
     'truck_sider': { l: 1030, w: 250, h: 300, weight: 12000 }
